@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Campfire at Dusk</title>
+<meta name="description" content="A four-step interaction sequence: ring the pit with rocks, gather wood, stack it, strike a match.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="wrap">
+  <svg id="scene" viewBox="0 0 860 520" role="application" aria-label="Build a campfire at dusk" data-step="-">
+    <defs>
+      <radialGradient id="g-glow">
+        <stop offset="0" class="glow-stop" stop-opacity=".9"/>
+        <stop offset=".55" class="glow-stop" stop-opacity=".35"/>
+        <stop offset="1" class="glow-stop" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="g-hole">
+        <stop offset="0" stop-color="#000"/>
+        <stop offset=".4" stop-color="#262626"/>
+        <stop offset="1" stop-color="#fff"/>
+      </radialGradient>
+      <pattern id="grit" width="6" height="6" patternUnits="userSpaceOnUse">
+        <circle class="grit" cx="1.5" cy="1.5" r="1"/><circle class="grit" cx="4.5" cy="4.5" r="1"/>
+      </pattern>
+      <!-- Dusk overlay is cut away around the fire once it is lit -->
+      <mask id="duskMask" maskUnits="userSpaceOnUse" x="-2000" y="-2000" width="5000" height="5000">
+        <rect x="-2000" y="-2000" width="5000" height="5000" fill="#fff"/>
+        <circle id="duskHole" r="200" fill="url(#g-hole)" opacity="0"/>
+      </mask>
+    </defs>
+
+    <g id="world">
+      <!-- Hiding spots (Wood study) -->
+      <g id="treeL"></g>
+      <g id="treeR"></g>
+      <g id="bench">
+        <ellipse class="shadow" cx="0" cy="62" rx="120" ry="9"/>
+        <rect class="bench" x="-92" y="6" width="12" height="56" rx="5"/>
+        <rect class="bench" x="80" y="6" width="12" height="56" rx="5"/>
+        <rect class="bench" x="-118" y="0" width="236" height="14" rx="7"/>
+      </g>
+      <g id="wildLogs"></g>
+
+      <!-- Fire pit (Rocks + Matches studies) -->
+      <g id="pit">
+        <g id="sigPit" class="sig"><ellipse cy="-6" rx="140" ry="80" fill="url(#g-glow)"/></g>
+        <g id="sigFire" class="sig"><ellipse cy="-20" rx="150" ry="100" fill="url(#g-glow)"/></g>
+        <ellipse id="halo" cx="0" cy="-50" rx="190" ry="160" fill="url(#g-glow)" opacity="0"/>
+        <ellipse id="pitGlow" cx="0" cy="-6" rx="110" ry="54" fill="url(#g-glow)"/>
+        <ellipse class="ash" cx="0" cy="6" rx="70" ry="22"/>
+        <g id="slots"></g>
+        <g id="pitFx"></g>
+      </g>
+
+      <ellipse id="pileGlow" class="off" cx="0" cy="0" rx="110" ry="70" fill="url(#g-glow)"/>
+      <g id="rocks"></g>
+      <g id="fireLogsWrap"><g id="fireLogs"></g></g>
+
+      <!-- Collection bubble (Wood study) -->
+      <g id="bubble">
+        <g id="bubbleArt">
+          <circle class="glass" r="1"/>
+        </g>
+        <g id="bagLogs"></g>
+        <g id="bubbleFront">
+          <path class="glass-hl" d="M-.62,-.42 A.75,.75 0 0 1 -.2,-.72"/>
+          <circle class="glass-dot" cx="-.66" cy="-.28" r=".045"/>
+        </g>
+      </g>
+
+      <!-- Match + striker (Matches study) -->
+      <g id="sigMatch" class="sig"><ellipse rx="80" ry="40" fill="url(#g-glow)"/></g>
+      <g id="sigStrike" class="sig"><ellipse rx="78" ry="44" fill="url(#g-glow)"/></g>
+      <g id="boxWrap"><g id="box">
+        <rect class="box" x="-38" y="-21" width="76" height="42" rx="6"/>
+        <rect class="strike" x="-38" y="-2" width="76" height="14"/>
+        <rect x="-38" y="-2" width="76" height="14" fill="url(#grit)"/>
+      </g></g>
+      <g id="match">
+        <rect x="-80" y="-14" width="100" height="28" fill="transparent"/>
+        <rect class="stick" x="-46" y="-2.5" width="64" height="5" rx="2.5"/>
+        <ellipse class="head" cx="-46" cy="0" rx="7" ry="6"/>
+        <g id="matchFlame" transform="scale(0)"><path class="f1"/><path class="f3"/></g>
+      </g>
+
+      <g id="drag"></g>
+      <g id="fxWorld"></g>
+    </g>
+
+    <rect id="dusk" x="-2000" y="-2000" width="5000" height="5000" mask="url(#duskMask)" opacity="0"/>
+
+    <!-- Light sits above the dusk so the flame stays crisp -->
+    <g id="light">
+      <g id="bigFlame"><path class="f1"/><path class="f2"/><path class="f3"/></g>
+      <g id="embers"></g>
+      <g id="lightFx"></g>
+    </g>
+    <g id="sparks"></g>
+    <g id="smoke"></g>
+    <g id="progress" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0"></g>
+  </svg>
+
+  <button id="reset" type="button" aria-label="Reset">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+  </button>
+  <div id="status" class="sr" aria-live="polite"></div>
+</div>
+
+<script src="js/engine.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/rocks.js"></script>
+<script src="js/wood.js"></script>
+<script src="js/match.js"></script>
+<script src="js/flow.js"></script>
+</body>
+</html>

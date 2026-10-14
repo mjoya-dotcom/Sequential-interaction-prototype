@@ -1,0 +1,353 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Campfire Rocks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one full-bleed stage; fire on the right (or top on phones), rock pile left (or below). */
+:root{
+  --bg:#e3e3e0;
+  --ink:#1e1e1d;
+  --faint:#a3a3a0;
+  --rock:#878784;
+  --rock-hi:#b4b4b1;
+  --wood:#4a4a48;
+  --wood-end:#7a7a77;
+  --ash:#d2d2cf;
+  --shadow:rgba(0,0,0,.14);
+  --glow:#ffffff;
+  --flame:#2b2b2a;
+  --flame-in:#9a9a97;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1a1a1b;--ink:#ececea;--faint:#555556;--rock:#79797b;--rock-hi:#a3a3a5;
+  --wood:#59595b;--wood-end:#8a8a8c;--ash:#262627;--shadow:rgba(0,0,0,.5);
+  --glow:#ffffff;--flame:#ededeb;--flame-in:#9c9c9a;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1a1a1b;--ink:#ececea;--faint:#555556;--rock:#79797b;--rock-hi:#a3a3a5;
+  --wood:#59595b;--wood-end:#8a8a8c;--ash:#262627;--shadow:rgba(0,0,0,.5);
+  --glow:#ffffff;--flame:#ededeb;--flame-in:#9c9c9a;color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);overflow:hidden;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:16px;box-sizing:border-box}
+#wrap{position:relative;height:100%;width:100%}
+#scene{display:block;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.rk-body{cursor:grab}
+.rk-body.dragging{cursor:grabbing}
+.placed .rk-body{cursor:default}
+.rk{fill:var(--rock)}
+.hl{fill:none;stroke:var(--rock-hi);stroke-width:3;stroke-linecap:round}
+.shadow{fill:var(--shadow)}
+.log{fill:var(--wood)}
+.log-end{fill:var(--wood-end)}
+.ash{fill:var(--ash)}
+.slot{fill:none;stroke:var(--faint);stroke-width:2;stroke-dasharray:5 6}
+#slots{opacity:0;transition:opacity .35s ease}
+#slots.show{opacity:1}
+.dot{fill:transparent;stroke:var(--faint);stroke-width:2}
+.dot.on{fill:var(--ink);stroke:var(--ink)}
+.puff{fill:none;stroke:var(--ink);stroke-width:2}
+.flame-o{fill:var(--flame)}
+.flame-i{fill:var(--flame-in)}
+.glow-stop{stop-color:var(--glow)}
+#pileGlow{animation:breathe 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+#pileGlow.off{animation:none;opacity:0;transition:opacity .5s}
+@keyframes breathe{0%,100%{opacity:.55;transform:scale(.94)}50%{opacity:1;transform:scale(1.06)}}
+
+#reset{position:absolute;top:0;right:0;width:44px;height:44px;border-radius:50%;
+  border:1.5px solid var(--faint);background:var(--bg);color:var(--ink);cursor:pointer;
+  display:grid;place-items:center;transition:transform .3s cubic-bezier(.3,1.6,.5,1),border-color .2s}
+#reset:hover{border-color:var(--ink);transform:rotate(-40deg)}
+#reset:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+#reset svg{width:20px;height:20px}
+@media (prefers-reduced-motion:reduce){#pileGlow{animation:none;opacity:.8}}
+</style>
+
+<div id="wrap">
+  <svg id="scene" viewBox="0 0 860 520" aria-label="Campfire Rocks study" role="img">
+    <defs>
+      <radialGradient id="g-glow">
+        <stop offset="0" class="glow-stop" stop-opacity=".9"/>
+        <stop offset=".55" class="glow-stop" stop-opacity=".35"/>
+        <stop offset="1" class="glow-stop" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+
+    <!-- Progress -->
+    <g id="progress"></g>
+
+    <!-- Campfire (swap with your campfire SVG) -->
+    <g id="fire">
+      <ellipse id="halo" cx="0" cy="-30" rx="170" ry="130" fill="url(#g-glow)" opacity="0"/>
+      <ellipse class="ash" cx="0" cy="6" rx="70" ry="22"/>
+      <g id="slots"></g>
+      <g id="logs">
+        <g transform="rotate(-18)">
+          <rect class="log" x="-58" y="-9" width="116" height="18" rx="9"/>
+          <ellipse class="log-end" cx="52" cy="0" rx="5" ry="8"/>
+        </g>
+        <g transform="rotate(18)">
+          <rect class="log" x="-58" y="-9" width="116" height="18" rx="9"/>
+          <ellipse class="log-end" cx="-52" cy="0" rx="5" ry="8"/>
+        </g>
+      </g>
+      <g id="flame" transform="scale(0)">
+        <path class="flame-o" d="M0,0 C-30,0 -38,-30 -22,-58 C-16,-70 -10,-80 -8,-96 C4,-80 26,-66 30,-38 C34,-14 22,0 0,0Z"/>
+        <path class="flame-i" d="M0,0 C-14,0 -18,-16 -10,-32 C-6,-40 -2,-46 0,-56 C8,-44 16,-34 16,-20 C16,-8 10,0 0,0Z"/>
+      </g>
+      <g id="fx"></g>
+    </g>
+
+    <!-- Rock pile signifier -->
+    <ellipse id="pileGlow" cx="0" cy="0" rx="110" ry="70" fill="url(#g-glow)"/>
+
+    <!-- Rocks (swap paths with your rock SVGs) -->
+    <g id="rocks"></g>
+  </svg>
+
+  <button id="reset" type="button" aria-label="Reset">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+  </button>
+</div>
+
+<script>
+(() => {
+const NS = 'http://www.w3.org/2000/svg';
+const S = document.getElementById('scene');
+const wrap = document.getElementById('wrap');
+const fireG = document.getElementById('fire');
+const flameG = document.getElementById('flame');
+const halo = document.getElementById('halo');
+const slotsG = document.getElementById('slots');
+const fxG = document.getElementById('fx');
+const rocksG = document.getElementById('rocks');
+const pileGlow = document.getElementById('pileGlow');
+const progG = document.getElementById('progress');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const M = reduce ? 0.35 : 1; // duration multiplier
+
+const el = (tag, attrs, parent) => { const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
+
+/* ---------- easing + tweens ---------- */
+const E = {
+  out: t => 1 - Math.pow(1 - t, 3),
+  inOut: t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2,
+  back: t => { const c = 1.9; return 1 + (c+1)*Math.pow(t-1,3) + c*Math.pow(t-1,2); },
+  elastic: t => t === 0 || t === 1 ? t : Math.pow(2,-10*t)*Math.sin((t*10-.75)*(2*Math.PI/3)) + 1,
+};
+let tweens = [];
+function tween(o, to, dur, ease = E.out, opts = {}) {
+  const keys = Object.keys(to);
+  tweens = tweens.filter(w => !(w.o === o && w.keys.some(k => keys.includes(k))));
+  const from = {}; keys.forEach(k => from[k] = o[k]);
+  const w = { o, keys, from, to, dur: Math.max(1, dur*M), t0: performance.now() + (opts.delay||0)*M, ease, done: opts.done, update: opts.update };
+  tweens.push(w); return w;
+}
+function stepTweens(now) {
+  const finished = [];
+  for (const w of tweens) {
+    if (now < w.t0) continue;
+    const t = Math.min(1, (now - w.t0) / w.dur), e = w.ease(t);
+    for (const k of w.keys) w.o[k] = w.from[k] + (w.to[k] - w.from[k]) * e;
+    if (w.update) w.update(t, e);
+    if (t >= 1) finished.push(w);
+  }
+  if (finished.length) { tweens = tweens.filter(w => !finished.includes(w)); finished.forEach(w => w.done && w.done()); }
+}
+
+/* ---------- layout ---------- */
+const SLOT_OFF = [[-84,-40],[84,-40],[-90,36],[90,36]];
+const PILE_OFF = [[-38,-12],[30,-20],[-8,18],[46,14]];
+let fire = {x:540,y:270}, pile = {x:220,y:300}, W = 860, H = 520;
+function layout() {
+  const r = wrap.clientWidth / Math.max(1, wrap.clientHeight);
+  if (r < 0.95) { W = 440; H = 760; fire = {x:220,y:300}; pile = {x:220,y:600}; }
+  else { W = 860; H = 520; fire = {x:560,y:290}; pile = {x:220,y:310}; }
+  S.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  fireG.setAttribute('transform', `translate(${fire.x},${fire.y})`);
+  pileGlow.setAttribute('cx', pile.x); pileGlow.setAttribute('cy', pile.y);
+  progG.setAttribute('transform', `translate(${W/2},${Math.max(34, H*0.07)})`);
+  rocks.forEach((r, i) => {
+    r.home = { x: pile.x + PILE_OFF[i][0], y: pile.y + PILE_OFF[i][1] };
+    if (!r.drag && !r.moving) {
+      const p = r.slot >= 0 ? slotPos(r.slot) : r.home; r.x = p.x; r.y = p.y;
+    }
+  });
+}
+const slotPos = s => ({ x: fire.x + SLOT_OFF[s][0], y: fire.y + SLOT_OFF[s][1] });
+
+/* ---------- slots + progress ---------- */
+const slotEls = SLOT_OFF.map(([x,y]) => {
+  const g = el('g', {transform:`translate(${x},${y})`}, slotsG);
+  const e = el('ellipse', {class:'slot', rx:30, ry:20, cy:4}, g);
+  return { g, e, s:1, filled:false };
+});
+const dots = [0,1,2,3].map(i => {
+  const c = el('circle', {class:'dot', r:5, cx:(i-1.5)*22, cy:0}, progG);
+  return { c, s:1 };
+});
+
+/* ---------- rocks ---------- */
+const ROCK_D = [
+ "M-28,6 C-30,-10 -14,-21 3,-20 C20,-19 30,-7 28,8 C26,18 11,21 -4,20 C-19,19 -27,15 -28,6Z",
+ "M-24,9 C-27,-6 -16,-18 -1,-19 C15,-20 27,-10 27,4 C27,15 15,21 0,21 C-13,21 -22,17 -24,9Z",
+ "M-30,8 C-29,-4 -18,-15 -2,-16 C16,-17 31,-8 30,6 C29,17 14,20 -2,20 C-18,20 -31,17 -30,8Z",
+ "M-23,7 C-25,-9 -10,-21 5,-19 C19,-17 26,-5 24,9 C22,18 9,21 -4,20 C-16,19 -22,15 -23,7Z"];
+const rocks = ROCK_D.map((d, i) => {
+  const g = el('g', {}, rocksG);
+  const sh = el('ellipse', {class:'shadow', rx:26, ry:7}, g);
+  const body = el('g', {class:'rk-body', tabindex:'-1'}, g);
+  el('path', {class:'rk', d}, body);
+  el('path', {class:'hl', d:'M-14,-10 C-8,-15 4,-16 10,-13'}, body);
+  const r = { i, g, sh, body, x:0, y:0, lift:0, rot:0, sx:1, sy:1, slot:-1, drag:false, moving:false,
+              tx:0, ty:0, px:0, ox:0, oy:0 };
+  body.addEventListener('pointerdown', e => grab(r, e));
+  body.addEventListener('pointerenter', () => { if (!r.drag && !r.moving && r.slot < 0) tween(r, {lift:6}, 220, E.back); });
+  body.addEventListener('pointerleave', () => { if (!r.drag && !r.moving && r.slot < 0) tween(r, {lift:0}, 260, E.out); });
+  return r;
+});
+
+/* ---------- interaction ---------- */
+let active = null, hot = -1, done = false;
+function toSvg(e) { const p = S.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(S.getScreenCTM().inverse()); }
+
+function grab(r, e) {
+  if (r.slot >= 0 || r.moving || active) return;
+  e.preventDefault();
+  r.body.setPointerCapture(e.pointerId);
+  active = r; r.drag = true; r.body.classList.add('dragging');
+  rocksG.appendChild(r.g);
+  const p = toSvg(e); r.ox = r.x - p.x; r.oy = r.y - p.y; r.tx = r.x; r.ty = r.y; r.px = r.x;
+  // On contact: squash, then spring up off the ground
+  tween(r, {sx:1.16, sy:0.8}, 90, E.out, { done: () =>
+    tween(r, {sx:0.94, sy:1.1, lift:26}, 240, E.back, { done: () =>
+      tween(r, {sx:1, sy:1}, 380, E.elastic) }) });
+  slotsG.classList.add('show');
+}
+S.addEventListener('pointermove', e => {
+  if (!active) return;
+  const p = toSvg(e); active.tx = p.x + active.ox; active.ty = p.y + active.oy;
+  // nearest open slot
+  let best = -1, bd = 95;
+  slotEls.forEach((s, i) => { if (s.filled) return; const sp = slotPos(i);
+    const d = Math.hypot(active.tx - sp.x, active.ty - sp.y); if (d < bd) { bd = d; best = i; } });
+  if (best !== hot) {
+    if (hot >= 0) tween(slotEls[hot], {s:1}, 300, E.out);
+    if (best >= 0) tween(slotEls[best], {s:1.22}, 420, E.elastic);
+    hot = best;
+  }
+});
+function release() {
+  if (!active) return;
+  const r = active; active = null; r.drag = false; r.body.classList.remove('dragging');
+  slotsG.classList.remove('show');
+  if (hot >= 0) { const s = hot; tween(slotEls[s], {s:1}, 200); hot = -1; place(r, s); }
+  else goHome(r);
+}
+S.addEventListener('pointerup', release);
+S.addEventListener('pointercancel', release);
+
+function arc(r, to, dur, height, ease, after) {
+  r.moving = true;
+  const l0 = r.lift;
+  tween(r, {x:to.x, y:to.y}, dur, ease, {
+    update: (t) => { r.lift = l0*(1-t) + Math.sin(Math.PI*t)*height; },
+    done: () => { r.lift = 0; r.moving = false; after && after(); } });
+}
+function land(r, k = 1) {
+  tween(r, {sx:1 + .3*k, sy:1 - .3*k}, 80, E.out, { done: () => tween(r, {sx:1, sy:1}, 650, E.elastic) });
+}
+function place(r, s) {
+  r.slot = s; slotEls[s].filled = true;
+  r.g.classList.add('placed');
+  const target = slotPos(s);
+  tween(r, {rot:0}, 500, E.out);
+  arc(r, target, 460, 42, E.inOut, () => {
+    land(r);
+    puff(SLOT_OFF[s]);
+    const n = slotEls.filter(x => x.filled).length;
+    const d = dots[n-1]; d.c.classList.add('on'); d.s = 0.2; tween(d, {s:1}, 600, E.elastic);
+    if (n === 4) setTimeout(complete, 260*M);
+  });
+}
+function goHome(r) {
+  // Incorrect input: float back with a little head-shake on landing
+  tween(r, {rot: r.rot > 0 ? -12 : 12}, 300, E.out);
+  arc(r, r.home, 560, 70, E.out, () => {
+    land(r, .6);
+    const w = {v:0};
+    tween(w, {v:1}, 520, x => x, { update: t => { r.rot = Math.sin(t*Math.PI*4) * 9 * (1-t); } });
+    pileGlow.style.animationDuration = '.6s';
+    setTimeout(() => pileGlow.style.animationDuration = '', 1300);
+  });
+}
+function puff([x, y]) {
+  const e = el('ellipse', {class:'puff', cx:x, cy:y+12, rx:24, ry:8, opacity:.6}, fxG);
+  const o = {k:0};
+  tween(o, {k:1}, 520, E.out, {
+    update: (t, v) => { e.setAttribute('rx', 24 + v*22); e.setAttribute('ry', 8 + v*7); e.setAttribute('opacity', .6*(1-v)); },
+    done: () => e.remove() });
+}
+
+/* ---------- completion ---------- */
+const flame = {s:0, h:0};
+function complete() {
+  if (slotEls.some(x => !x.filled)) return;
+  done = true;
+  pileGlow.classList.add('off');
+  rocks.forEach((r, i) => setTimeout(() => {
+    if (!done) return;
+    tween(r, {lift:14}, 160, E.out, { done: () => tween(r, {lift:0}, 420, E.back, { done: () => land(r, .4) }) });
+  }, (220 + i*90) * M));
+}
+
+/* ---------- reset ---------- */
+function reset() {
+  tweens = []; active = null; hot = -1; done = false;
+  slotsG.classList.remove('show');
+  pileGlow.classList.remove('off');
+  tween(flame, {s:0, h:0}, 280, E.out);
+  slotEls.forEach(s => { s.filled = false; s.s = 1; });
+  dots.forEach(d => { d.c.classList.remove('on'); d.s = 1; });
+  rocks.forEach((r, i) => {
+    r.drag = false; r.slot = -1; r.g.classList.remove('placed'); r.body.classList.remove('dragging');
+    r.sx = r.sy = 1;
+    setTimeout(() => { tween(r, {rot:0}, 400); arc(r, r.home, 560, 60, E.inOut, () => land(r, .5)); }, i*70*M);
+  });
+}
+document.getElementById('reset').addEventListener('click', reset);
+
+/* ---------- render loop ---------- */
+function frame(now) {
+  stepTweens(now);
+  for (const r of rocks) {
+    if (r.drag) { // flowy follow: lag + lean into motion
+      r.x += (r.tx - r.x) * 0.28; r.y += (r.ty - r.y) * 0.28;
+      const vx = r.x - r.px; r.px = r.x;
+      const lean = Math.max(-28, Math.min(28, vx * 2.2));
+      r.rot += (lean - r.rot) * 0.18;
+      if (!reduce) r.lift = 26 + Math.sin(now/180) * 3;
+    }
+    r.body.setAttribute('transform', `translate(${r.x},${r.y - r.lift + 18}) rotate(${r.rot}) scale(${r.sx},${r.sy}) translate(0,-18)`);
+    const k = Math.max(0.45, 1 - r.lift/90);
+    r.sh.setAttribute('cx', r.x); r.sh.setAttribute('cy', r.y + 18);
+    r.sh.setAttribute('rx', 26*k*r.sx); r.sh.setAttribute('opacity', k);
+  }
+  slotEls.forEach(s => s.e.setAttribute('transform', `scale(${s.s})`));
+  dots.forEach(d => d.c.setAttribute('transform', `translate(${d.c.getAttribute('cx')},0) scale(${d.s}) translate(${-d.c.getAttribute('cx')},0)`));
+  const f = reduce ? 0 : 1, t = now/1000;
+  const fy = flame.s * (1 + f*(0.07*Math.sin(t*8) + 0.035*Math.sin(t*21)));
+  const sk = f * 4 * Math.sin(t*5.3) * flame.s;
+  flameG.setAttribute('transform', `translate(0,-2) skewX(${sk}) scale(${flame.s},${fy})`);
+  halo.setAttribute('opacity', flame.h * (0.85 + f*0.15*Math.sin(t*7)));
+  requestAnimationFrame(frame);
+}
+
+layout();
+new ResizeObserver(layout).observe(wrap);
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>

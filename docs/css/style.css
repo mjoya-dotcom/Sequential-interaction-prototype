@@ -1,0 +1,132 @@
+/* Campfire at Dusk — flat grayscale style from the Rocks + Matches studies. */
+:root{
+  --bg:#e3e3e0;
+  --ink:#1e1e1d;
+  --faint:#a3a3a0;
+  --rock:#878784;
+  --rock-hi:#b4b4b1;
+  --wood:#4a4a48;
+  --wood-end:#7a7a77;
+  --char:#929290;
+  --bench:#6a6a67;
+  --trunk:#7c7c79;
+  --canopy:#c9c9c5;
+  --canopy-hi:#dadad6;
+  --box:#c9c9c5;
+  --ash:#d2d2cf;
+  --shadow:rgba(0,0,0,.14);
+  --glow:#ffffff;
+  --glass:rgba(255,255,255,.3);
+  --f1:#2b2b2a; --f2:#6c6c69; --f3:#c6c6c2;
+  --stick:#9e9e9a; --head:#2b2b2a;
+  --dusk:#0c0c0f;
+  --dusk-k:1;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1a1a1b;--ink:#ececea;--faint:#555556;--rock:#79797b;--rock-hi:#a3a3a5;
+  --wood:#59595b;--wood-end:#8a8a8c;--char:#3a3a3c;--bench:#4a4a4c;--trunk:#444446;
+  --canopy:#2c2c2e;--canopy-hi:#363638;--box:#3a3a3c;--ash:#262627;--shadow:rgba(0,0,0,.5);
+  --glow:#ffffff;--glass:rgba(255,255,255,.07);
+  --f1:#efefed;--f2:#a9a9a7;--f3:#5c5c5e;--stick:#8e8e90;--head:#e2e2e0;
+  --dusk:#000;--dusk-k:.7;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1a1a1b;--ink:#ececea;--faint:#555556;--rock:#79797b;--rock-hi:#a3a3a5;
+  --wood:#59595b;--wood-end:#8a8a8c;--char:#3a3a3c;--bench:#4a4a4c;--trunk:#444446;
+  --canopy:#2c2c2e;--canopy-hi:#363638;--box:#3a3a3c;--ash:#262627;--shadow:rgba(0,0,0,.5);
+  --glow:#ffffff;--glass:rgba(255,255,255,.07);
+  --f1:#efefed;--f2:#a9a9a7;--f3:#5c5c5e;--stick:#8e8e90;--head:#e2e2e0;
+  --dusk:#000;--dusk-k:.7;color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);overflow:hidden;
+  font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:max(16px,env(safe-area-inset-top,0px));padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
+#wrap{position:relative;height:100%;width:100%}
+#scene{display:block;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none;overflow:visible}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* shapes */
+.rk{fill:var(--rock)} .hl{fill:none;stroke:var(--rock-hi);stroke-width:3;stroke-linecap:round}
+.shadow{fill:var(--shadow)} .log{fill:var(--wood);transition:fill 6s ease} .log-end{fill:var(--wood-end)} .ash{fill:var(--ash)}
+.bench{fill:var(--bench)} .box{fill:var(--box)} .strike{fill:var(--wood)} .grit{fill:var(--wood-end)}
+.stick{fill:var(--stick)} .head{fill:var(--head)}
+.trunk{fill:var(--trunk)} .canopy{fill:var(--canopy)} .canopy-hl{fill:none;stroke:var(--canopy-hi);stroke-width:5;stroke-linecap:round}
+.f1{fill:var(--f1)} .f2{fill:var(--f2)} .f3{fill:var(--f3)}
+.spark{fill:var(--ink)} .ember{fill:var(--f2)}
+.smoke{fill:none;stroke:var(--faint);stroke-width:3;stroke-linecap:round}
+.puff,.ring{fill:none;stroke:var(--ink);stroke-width:2}
+.glow-stop{stop-color:var(--glow)}
+#dusk{fill:var(--dusk);pointer-events:none}
+#light,#sparks,#smoke,#fxWorld{pointer-events:none}
+
+/* collection bubble */
+.glass{fill:var(--glass);stroke:var(--faint);stroke-width:.02}
+.glass-hl{fill:none;stroke:var(--glow);stroke-width:.06;stroke-linecap:round}
+.glass-dot{fill:var(--glow)}
+#bubbleArt,#bubbleFront{pointer-events:none}
+
+/* progress */
+.dot{fill:transparent;stroke:var(--faint);stroke-width:2;transition:stroke .3s}
+.dot.cur{stroke:var(--ink)}
+.dot.on{stroke:var(--ink)}
+.dot-fill{fill:var(--ink)}
+
+/* rock slots (Rocks study) */
+.slot{fill:none;stroke:var(--faint);stroke-width:2;stroke-dasharray:5 6}
+#slots{opacity:0;transition:opacity .35s ease}
+#slots.show{opacity:1}
+
+/* signifiers: breathing glows */
+.sig{opacity:0;transition:opacity .45s ease;pointer-events:none}
+.sig.on{opacity:1}
+.sig ellipse{animation:breathe 2.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+#pileGlow{animation:breathe 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center;pointer-events:none}
+#pileGlow.off{animation:none;opacity:0;transition:opacity .5s}
+@keyframes breathe{0%,100%{opacity:.55;transform:scale(.94)}50%{opacity:1;transform:scale(1.06)}}
+
+/* pit glow while dragging wood (Wood study) */
+#pitGlow{opacity:0;transition:opacity .3s;pointer-events:none;transform-box:fill-box;transform-origin:center}
+#pit.armed #pitGlow{opacity:.45}
+#pit.hot #pitGlow{opacity:1}
+#pit.lit #pitGlow{opacity:1;animation:flick .5s ease-in-out infinite alternate}
+#pit.coals #pitGlow{opacity:.7;animation:flick 1.6s ease-in-out infinite alternate}
+@keyframes flick{from{opacity:.55;transform:scale(.94)}to{opacity:1;transform:scale(1.08)}}
+
+/* wood */
+.wlog{outline:none}
+.whalo{opacity:0;transition:opacity .3s;pointer-events:none;transform-box:fill-box;transform-origin:center}
+.wlog.wild .whalo{opacity:1;animation:glow 1.5s ease-in-out infinite alternate}
+.wlog.wild:hover .whalo,.wlog.wild:focus-visible .whalo{animation-duration:.45s}
+.wlog.bagged .whalo{opacity:.55}
+.wlog.dragging .whalo{opacity:.9}
+.wlog:focus-visible .log{stroke:var(--ink);stroke-width:2.5}
+#fireLogs.lit .whalo{opacity:.9;animation:glow .6s ease-in-out infinite alternate}
+#fireLogs.charred .log{fill:var(--char)}
+@keyframes glow{from{opacity:.4;transform:scale(.9)}to{opacity:1;transform:scale(1.06)}}
+
+/* cursors follow the active step */
+.rk-body,.wlog,#match{cursor:default}
+#scene[data-step="0"] .rk-body:not(.placed){cursor:grab}
+#scene[data-step="0"] .rk-body.dragging{cursor:grabbing}
+#scene[data-step="1"] .wlog.wild{cursor:pointer}
+#scene[data-step="2"] .wlog.bagged{cursor:grab}
+.wlog.dragging{cursor:grabbing}
+#scene[data-step="3"] #match{cursor:grab}
+#match.held{cursor:grabbing}
+#match.gone{pointer-events:none}
+
+/* reset */
+#reset{position:absolute;top:0;right:0;width:44px;height:44px;border-radius:50%;z-index:2;
+  border:1.5px solid var(--faint);background:var(--bg);color:var(--ink);cursor:pointer;
+  display:grid;place-items:center;transition:transform .3s cubic-bezier(.3,1.6,.5,1),border-color .2s}
+#reset:hover{border-color:var(--ink);transform:rotate(-40deg)}
+#reset:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+#reset svg{width:20px;height:20px}
+
+@media (prefers-reduced-motion:reduce){
+  .sig ellipse,#pileGlow,.wlog.wild .whalo,#fireLogs.lit .whalo,#pit.lit #pitGlow,#pit.coals #pitGlow{animation:none}
+  .sig.on ellipse{opacity:.8}
+}

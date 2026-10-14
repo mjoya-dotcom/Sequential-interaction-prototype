@@ -1,0 +1,429 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Campfire Matches</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one full-bleed stage; bench with match + striker on the left (below on phones), laid campfire on the right. */
+:root{
+  --bg:#e3e3e0;
+  --ink:#1e1e1d;
+  --faint:#a3a3a0;
+  --rock:#878784;
+  --rock-hi:#b4b4b1;
+  --wood:#4a4a48;
+  --wood-end:#7a7a77;
+  --bench:#6a6a67;
+  --box:#c9c9c5;
+  --ash:#d2d2cf;
+  --shadow:rgba(0,0,0,.14);
+  --glow:#ffffff;
+  --f1:#2b2b2a; --f2:#6c6c69; --f3:#c6c6c2;
+  --stick:#9e9e9a; --head:#2b2b2a;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1a1a1b;--ink:#ececea;--faint:#555556;--rock:#79797b;--rock-hi:#a3a3a5;
+  --wood:#59595b;--wood-end:#8a8a8c;--bench:#4a4a4c;--box:#3a3a3c;--ash:#262627;--shadow:rgba(0,0,0,.5);
+  --glow:#ffffff;--f1:#efefed;--f2:#a9a9a7;--f3:#5c5c5e;--stick:#8e8e90;--head:#e2e2e0;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1a1a1b;--ink:#ececea;--faint:#555556;--rock:#79797b;--rock-hi:#a3a3a5;
+  --wood:#59595b;--wood-end:#8a8a8c;--bench:#4a4a4c;--box:#3a3a3c;--ash:#262627;--shadow:rgba(0,0,0,.5);
+  --glow:#ffffff;--f1:#efefed;--f2:#a9a9a7;--f3:#5c5c5e;--stick:#8e8e90;--head:#e2e2e0;color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);overflow:hidden;box-sizing:border-box;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px}
+#wrap{position:relative;height:100%;width:100%}
+#scene{display:block;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+
+.rk{fill:var(--rock)} .hl{fill:none;stroke:var(--rock-hi);stroke-width:3;stroke-linecap:round}
+.shadow{fill:var(--shadow)} .log{fill:var(--wood)} .log-end{fill:var(--wood-end)} .ash{fill:var(--ash)}
+.bench{fill:var(--bench)} .box{fill:var(--box)} .strike{fill:var(--wood)} .grit{fill:var(--wood-end)}
+.stick{fill:var(--stick)} .head{fill:var(--head)}
+.f1{fill:var(--f1)} .f2{fill:var(--f2)} .f3{fill:var(--f3)}
+.spark{fill:var(--ink)} .ember{fill:var(--f2)}
+.smoke{fill:none;stroke:var(--faint);stroke-width:3;stroke-linecap:round}
+.dot{fill:transparent;stroke:var(--faint);stroke-width:2} .dot.on{fill:var(--ink);stroke:var(--ink)}
+.ring{fill:none;stroke:var(--ink);stroke-width:2}
+.glow-stop{stop-color:var(--glow)}
+
+.sig{opacity:0;transition:opacity .45s ease}
+.sig.on{opacity:1}
+.sig ellipse{animation:breathe 2.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes breathe{0%,100%{opacity:.55;transform:scale(.92)}50%{opacity:1;transform:scale(1.08)}}
+
+#match{cursor:grab} #match.held{cursor:grabbing} #match.gone{pointer-events:none}
+
+#reset{position:absolute;top:0;right:0;width:44px;height:44px;border-radius:50%;
+  border:1.5px solid var(--faint);background:var(--bg);color:var(--ink);cursor:pointer;
+  display:grid;place-items:center;transition:transform .3s cubic-bezier(.3,1.6,.5,1),border-color .2s}
+#reset:hover{border-color:var(--ink);transform:rotate(-40deg)}
+#reset:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+#reset svg{width:20px;height:20px}
+@media (prefers-reduced-motion:reduce){.sig ellipse{animation:none;opacity:.8}}
+</style>
+
+<div id="wrap">
+  <svg id="scene" viewBox="0 0 860 520" role="img" aria-label="Campfire Matches study">
+    <defs>
+      <radialGradient id="g-glow">
+        <stop offset="0" class="glow-stop" stop-opacity=".9"/>
+        <stop offset=".55" class="glow-stop" stop-opacity=".35"/>
+        <stop offset="1" class="glow-stop" stop-opacity="0"/>
+      </radialGradient>
+      <pattern id="grit" width="6" height="6" patternUnits="userSpaceOnUse">
+        <circle class="grit" cx="1.5" cy="1.5" r="1"/><circle class="grit" cx="4.5" cy="4.5" r="1"/>
+      </pattern>
+    </defs>
+
+    <g id="progress"></g>
+
+    <!-- Bench (swap with your bench SVG) -->
+    <g id="bench">
+      <ellipse class="shadow" cx="0" cy="62" rx="120" ry="9"/>
+      <rect class="bench" x="-92" y="6" width="12" height="56" rx="5"/>
+      <rect class="bench" x="80" y="6" width="12" height="56" rx="5"/>
+      <rect class="bench" x="-118" y="0" width="236" height="14" rx="7"/>
+    </g>
+
+    <g id="sigMatch" class="sig"><ellipse rx="80" ry="40" fill="url(#g-glow)"/></g>
+    <g id="sigStrike" class="sig"><ellipse rx="78" ry="44" fill="url(#g-glow)"/></g>
+
+    <!-- Matchbox with striker (swap with your matchbox SVG) -->
+    <g id="boxWrap"><g id="box">
+      <rect class="box" x="-38" y="-21" width="76" height="42" rx="6"/>
+      <rect class="strike" x="-38" y="-2" width="76" height="14"/>
+      <rect x="-38" y="-2" width="76" height="14" fill="url(#grit)"/>
+    </g></g>
+
+    <!-- Campfire, laid (swap with your campfire / rock SVGs) -->
+    <g id="fire">
+      <g id="sigFire" class="sig"><ellipse cy="-20" rx="150" ry="100" fill="url(#g-glow)"/></g>
+      <ellipse id="halo" cx="0" cy="-50" rx="190" ry="160" fill="url(#g-glow)" opacity="0"/>
+      <ellipse class="ash" cx="0" cy="6" rx="70" ry="22"/>
+      <g id="logs">
+        <g transform="rotate(-18)"><rect class="log" x="-58" y="-9" width="116" height="18" rx="9"/><ellipse class="log-end" cx="52" cy="0" rx="5" ry="8"/></g>
+        <g transform="rotate(18)"><rect class="log" x="-58" y="-9" width="116" height="18" rx="9"/><ellipse class="log-end" cx="-52" cy="0" rx="5" ry="8"/></g>
+      </g>
+      <g id="bigFlame"><path class="f1"/><path class="f2"/><path class="f3"/></g>
+      <g id="embers"></g>
+      <g id="rocks"></g>
+      <g id="fx"></g>
+    </g>
+
+    <g id="sparks"></g>
+
+    <!-- Match (swap with your match SVG). Local origin = grip point; head at x = -46. -->
+    <g id="match">
+      <rect x="-80" y="-14" width="100" height="28" fill="transparent"/>
+      <rect class="stick" x="-46" y="-2.5" width="64" height="5" rx="2.5"/>
+      <ellipse class="head" cx="-46" cy="0" rx="7" ry="6"/>
+      <g id="matchFlame" transform="scale(0)"><path class="f1"/><path class="f3"/></g>
+    </g>
+    <g id="smoke"></g>
+  </svg>
+
+  <button id="reset" type="button" aria-label="Reset">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+  </button>
+</div>
+
+<script>
+(() => {
+const NS = 'http://www.w3.org/2000/svg';
+const $ = id => document.getElementById(id);
+const S = $('scene'), wrap = $('wrap');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const M = reduce ? 0.35 : 1, F = reduce ? 0.25 : 1;
+const el = (tag, a, p) => { const n = document.createElementNS(NS, tag); for (const k in a) n.setAttribute(k, a[k]); p && p.appendChild(n); return n; };
+
+/* ---------- tweens ---------- */
+const E = {
+  out: t => 1 - Math.pow(1-t, 3),
+  inOut: t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2,
+  back: t => { const c = 1.9; return 1 + (c+1)*Math.pow(t-1,3) + c*Math.pow(t-1,2); },
+  elastic: t => t === 0 || t === 1 ? t : Math.pow(2,-10*t)*Math.sin((t*10-.75)*(2*Math.PI/3)) + 1,
+  bounce: t => { const n=7.5625,d=2.75; if(t<1/d) return n*t*t; if(t<2/d) return n*(t-=1.5/d)*t+.75; if(t<2.5/d) return n*(t-=2.25/d)*t+.9375; return n*(t-=2.625/d)*t+.984375; },
+};
+let tweens = [];
+function tween(o, to, dur, ease = E.out, opts = {}) {
+  const keys = Object.keys(to);
+  tweens = tweens.filter(w => !(w.o === o && w.keys.some(k => keys.includes(k))));
+  const from = {}; keys.forEach(k => from[k] = o[k]);
+  tweens.push({ o, keys, from, to, dur: Math.max(1, dur*M), t0: performance.now(), ease, done: opts.done, update: opts.update });
+}
+function stepTweens(now) {
+  const fin = [];
+  for (const w of tweens) {
+    const t = Math.min(1, (now - w.t0) / w.dur), e = w.ease(t);
+    for (const k of w.keys) w.o[k] = w.from[k] + (w.to[k] - w.from[k]) * e;
+    w.update && w.update(t, e);
+    if (t >= 1) fin.push(w);
+  }
+  if (fin.length) { tweens = tweens.filter(w => !fin.includes(w)); fin.forEach(w => w.done && w.done()); }
+}
+
+/* ---------- ribbon flame: layered, wavy outlines ---------- */
+function flameD(h, w, t, seed, sway) {
+  const N = 22, L = [], R = [];
+  for (let i = 0; i <= N; i++) {
+    const v = i / N, y = -h * v;
+    const c = sway * v * (Math.sin(t*3.1 + v*4 + seed) + 0.35*Math.sin(t*7.3 + v*9 + seed*2));
+    const prof = w * Math.pow(1 - v, 0.85) * Math.min(1, 0.45 + v*2.6);
+    const ripple = 1 + 0.1*Math.sin(t*11 + v*12 + seed);
+    L.push([c - prof/2*ripple, y]); R.push([c + prof/2*(2 - ripple), y]);
+  }
+  const pts = L.concat(R.reverse());
+  return 'M' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L') + 'Z';
+}
+
+/* ---------- static pieces ---------- */
+const SLOT_OFF = [[-84,-40],[84,-40],[-90,36],[90,36]];
+const ROCK_D = [
+ "M-28,6 C-30,-10 -14,-21 3,-20 C20,-19 30,-7 28,8 C26,18 11,21 -4,20 C-19,19 -27,15 -28,6Z",
+ "M-24,9 C-27,-6 -16,-18 -1,-19 C15,-20 27,-10 27,4 C27,15 15,21 0,21 C-13,21 -22,17 -24,9Z",
+ "M-30,8 C-29,-4 -18,-15 -2,-16 C16,-17 31,-8 30,6 C29,17 14,20 -2,20 C-18,20 -31,17 -30,8Z",
+ "M-23,7 C-25,-9 -10,-21 5,-19 C19,-17 26,-5 24,9 C22,18 9,21 -4,20 C-16,19 -22,15 -23,7Z"];
+const rocks = ROCK_D.map((d, i) => {
+  const g = el('g', {}, $('rocks')), [x, y] = SLOT_OFF[i];
+  const sh = el('ellipse', {class:'shadow', cx:x, cy:y+18, rx:26, ry:7}, g);
+  const b = el('g', {}, g);
+  el('path', {class:'rk', d}, b); el('path', {class:'hl', d:'M-14,-10 C-8,-15 4,-16 10,-13'}, b);
+  return { b, x, y, lift:0, sx:1, sy:1 };
+});
+const dots = [0,1,2,3].map(i => ({ c: el('circle', {class:'dot', r:5, cx:(i-1.5)*22, cy:0}, $('progress')), s:1 }));
+
+/* ---------- layout ---------- */
+let W, H, fire, bench, box, home;
+function layout() {
+  const r = wrap.clientWidth / Math.max(1, wrap.clientHeight);
+  if (r < 0.95) { W = 440; H = 760; fire = {x:220,y:310}; bench = {x:220,y:610}; }
+  else { W = 860; H = 520; fire = {x:580,y:300}; bench = {x:220,y:330}; }
+  box = { x: bench.x + 58, y: bench.y - 21 };
+  home = { x: bench.x - 22, y: bench.y - 6 };
+  S.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  $('fire').setAttribute('transform', `translate(${fire.x},${fire.y})`);
+  $('bench').setAttribute('transform', `translate(${bench.x},${bench.y})`);
+  $('sigMatch').setAttribute('transform', `translate(${home.x - 18},${home.y})`);
+  $('sigStrike').setAttribute('transform', `translate(${box.x},${box.y + 4})`);
+  $('progress').setAttribute('transform', `translate(${W/2},${Math.max(34, H*0.07)})`);
+  if (!m.held && !m.moving && !m.gone) { m.x = home.x; m.y = home.y; }
+}
+
+/* ---------- state ---------- */
+const m = { x:0, y:0, lift:0, base:0, lean:0, sx:1, sy:1, op:1, px:0, py:0, tx:0, ty:0, ox:0, oy:0,
+            held:false, moving:false, gone:false, lit:false, fl:0, rub:0, hx:0, hy:0 };
+const bx = { j:0, s:1 };            // matchbox jiggle
+const logs = { r:0 };               // logs "no" wobble
+const fireS = { s:0, h:0 };         // campfire flame scale + halo
+let done = false, lastNo = 0;
+const matchEl = $('match');
+
+/* ---------- particles ---------- */
+const sparks = [], embers = [];
+function spark(x, y, n, spd = 3) {
+  for (let k = 0; k < n; k++) {
+    const a = -Math.PI/2 + (Math.random() - .5) * 2.4, v = spd * (0.5 + Math.random());
+    sparks.push({ x, y, vx: Math.cos(a)*v, vy: Math.sin(a)*v, life: 1, r: 1.5 + Math.random()*2.2,
+                  n: el('circle', {class:'spark'}, $('sparks')) });
+  }
+}
+function ring(x, y, r0, parent) {
+  const e = el('ellipse', {class:'ring', cx:x, cy:y}, parent), o = {k:0};
+  tween(o, {k:1}, 560, E.out, { update: (t, v) => { e.setAttribute('rx', r0 + v*r0*1.4); e.setAttribute('ry', (r0 + v*r0*1.4)*.45); e.setAttribute('opacity', .7*(1-v)); }, done: () => e.remove() });
+}
+
+/* ---------- interaction ---------- */
+function toSvg(e) { const p = S.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(S.getScreenCTM().inverse()); }
+matchEl.addEventListener('pointerdown', e => {
+  if (m.moving || m.gone || done) return;
+  e.preventDefault(); matchEl.setPointerCapture(e.pointerId);
+  m.held = true; matchEl.classList.add('held');
+  const p = toSvg(e); m.ox = m.x - p.x; m.oy = m.y - p.y; m.tx = m.x; m.ty = m.y; m.px = m.x; m.py = m.y;
+  // On contact: pop + squash, tip head up
+  tween(m, {sx:1.18, sy:0.75}, 90, E.out, { done: () => tween(m, {sx:1, sy:1}, 600, E.elastic) });
+  tween(m, {lift:16}, 320, E.back);
+  tween(m, {base:-32}, 520, E.elastic);
+});
+matchEl.addEventListener('pointerenter', () => { if (!m.held && !m.moving && !m.gone && !done) tween(m, {lift:6}, 240, E.back); });
+matchEl.addEventListener('pointerleave', () => { if (!m.held && !m.moving && !m.gone && !done) tween(m, {lift:0}, 260); });
+S.addEventListener('pointermove', e => {
+  if (!m.held) return;
+  const p = toSvg(e); m.tx = p.x + m.ox; m.ty = p.y + m.oy;
+});
+function release() {
+  if (!m.held) return;
+  m.held = false; matchEl.classList.remove('held');
+  sendHome();
+}
+S.addEventListener('pointerup', release);
+S.addEventListener('pointercancel', release);
+
+function sendHome() {
+  // Incorrect input: bounce back to the bench, wiggle "no"
+  m.moving = true;
+  const l0 = m.lift;
+  tween(m, {base:0}, 520, E.out);
+  tween(m, {x:home.x, y:home.y}, 560, E.out, {
+    update: t => { m.lift = l0*(1-t) + Math.sin(Math.PI*t)*60; },
+    done: () => {
+      m.lift = 0; m.moving = false;
+      tween(m, {sx:1.22, sy:0.78}, 80, E.out, { done: () => tween(m, {sx:1, sy:1}, 600, E.elastic) });
+      const w = {v:0}; tween(w, {v:1}, 520, x => x, { update: t => { m.lean = Math.sin(t*Math.PI*4) * 10 * (1-t); } });
+    } });
+}
+
+function ignite() {
+  m.lit = true; m.rub = 0;
+  tween(m, {fl:1}, 700, E.elastic);
+  spark(m.hx, m.hy, 16, 4.5);
+  tween(bx, {s:1.15}, 90, E.out, { done: () => tween(bx, {s:1}, 600, E.elastic) });
+}
+
+function lightFire() {
+  done = true; m.held = false; m.gone = true; matchEl.classList.remove('held'); matchEl.classList.add('gone');
+  const tx = fire.x, ty = fire.y - 14;
+  tween(m, {x: tx + 46*Math.cos(m.base*Math.PI/180), y: ty + 46*Math.sin(m.base*Math.PI/180), lift:0}, 280, E.inOut, {
+    done: () => {
+      tween(m, {op:0, sx:.6, sy:.6, fl:0}, 320, E.out);
+      puffSmoke(tx, ty - 10);
+      tween(fireS, {s:1}, 1300, E.elastic);
+      tween(fireS, {h:1}, 900, E.out);
+      ring(0, 4, 50, $('fx'));
+      spark(tx, ty - 20, 22, 5);
+      // Completion: last dot fills, rocks hop in a wave
+      const d = dots[3]; d.c.classList.add('on'); d.s = .2; tween(d, {s:1}, 700, E.elastic);
+      rocks.forEach((r, i) => setTimeout(() => { if (!done) return;
+        tween(r, {lift:16}, 170, E.out, { done: () => tween(r, {lift:0}, 520, E.bounce) }); }, (180 + i*90)*M));
+    } });
+}
+function puffSmoke(x, y) {
+  for (let k = 0; k < 2; k++) {
+    const p = el('path', {class:'smoke'}, $('smoke')), o = {k:0}, off = k ? 12 : -10;
+    tween(o, {k:1}, 1400, E.out, { update: (t, v) => {
+      let d = ''; for (let i = 0; i <= 12; i++) { const s = i/12, yy = y - s*70*v - 10*v;
+        const xx = x + off + Math.sin(s*6 + v*5 + k)*10*s; d += (i ? ' L' : 'M') + xx.toFixed(1) + ',' + yy.toFixed(1); }
+      p.setAttribute('d', d); p.setAttribute('opacity', .8*(1-v)); }, done: () => p.remove() });
+  }
+}
+
+/* ---------- reset ---------- */
+function reset() {
+  tweens = []; done = false;
+  sparks.splice(0).forEach(s => s.n.remove()); embers.splice(0).forEach(e => e.n.remove());
+  $('smoke').innerHTML = ''; $('fx').innerHTML = '';
+  Object.assign(m, { held:false, moving:false, gone:false, lit:false, fl:0, rub:0, op:1, base:0, lean:0, sx:1, sy:1, lift:0 });
+  matchEl.classList.remove('held', 'gone');
+  fireS.s = 0; fireS.h = 0; bx.s = 1; logs.r = 0;
+  rocks.forEach(r => r.lift = 0);
+  dots.forEach((d, i) => { d.s = 1; d.c.classList.toggle('on', i < 3); });
+  entrance();
+}
+$('reset').addEventListener('click', reset);
+
+/* Signifier: the match drops onto the bench */
+function entrance() {
+  m.moving = true; m.x = home.x; m.y = home.y - 170; m.base = -60;
+  tween(m, {base:0}, 900, E.elastic);
+  tween(m, {y: home.y}, 760, E.bounce, { done: () => { m.moving = false;
+    tween(m, {sx:1.2, sy:.8}, 70, E.out, { done: () => tween(m, {sx:1, sy:1}, 500, E.elastic) }); } });
+}
+
+/* ---------- frame ---------- */
+const bigP = [...$('bigFlame').children], smallP = [...$('matchFlame').children];
+function frame(now) {
+  stepTweens(now);
+  const t = now / 1000;
+
+  if (m.held) {
+    m.x += (m.tx - m.x) * 0.3; m.y += (m.ty - m.y) * 0.3;
+    const vx = m.x - m.px; m.px = m.x; m.py = m.y;
+    const target = Math.max(-28, Math.min(28, vx * 2));
+    m.lean += (target - m.lean) * 0.2;
+    if (!reduce) m.lift = 16 + Math.sin(t*5.5) * 3;
+  }
+  const rot = (m.base + m.lean) * Math.PI / 180;
+  const hxp = m.hx, hyp = m.hy;
+  m.hx = m.x - 46*Math.cos(rot); m.hy = m.y - m.lift - 46*Math.sin(rot);
+
+  if (m.held && !done) {
+    if (!m.lit) {
+      // During: head rubbing across the striker throws sparks
+      const inStrike = m.hx > box.x - 52 && m.hx < box.x + 52 && m.hy > box.y - 16 && m.hy < box.y + 26;
+      const d = Math.hypot(m.hx - hxp, m.hy - hyp);
+      if (inStrike && d > 0.6) {
+        m.rub += d;
+        if (Math.random() < Math.min(1, d / 6)) spark(m.hx, m.hy, 1 + (d > 8 ? 2 : 0), 2.4);
+        bx.j = Math.min(3, d * 0.4);
+        if (m.rub > 110) ignite();
+      } else { m.rub *= 0.985; bx.j *= 0.8; }
+    } else {
+      bx.j *= 0.8;
+    }
+    // Contact with the fire
+    const fd = Math.hypot(m.hx - fire.x, m.hy - (fire.y - 8));
+    if (fd < 70) {
+      if (m.lit) lightFire();
+      else if (now - lastNo > 900) {
+        lastNo = now; const w = {v:0};
+        tween(w, {v:1}, 500, x => x, { update: tt => { logs.r = Math.sin(tt*Math.PI*4) * 5 * (1-tt); } });
+      }
+    }
+  } else bx.j *= 0.8;
+
+  // match
+  matchEl.setAttribute('transform', `translate(${m.x},${m.y - m.lift}) rotate(${m.base + m.lean}) scale(${m.sx},${m.sy})`);
+  matchEl.setAttribute('opacity', m.op);
+  const fl = m.fl;
+  $('matchFlame').setAttribute('transform', `translate(-50,-2) rotate(${-(m.base + m.lean)}) scale(${fl})`);
+  if (fl > 0.001) { smallP[0].setAttribute('d', flameD(30, 17, t*1.6*F, 1, 4*F)); smallP[1].setAttribute('d', flameD(15, 8, t*1.9*F, 2, 2*F)); }
+
+  // matchbox jiggle
+  const jx = (Math.random() - .5) * bx.j, jy = (Math.random() - .5) * bx.j;
+  $('boxWrap').setAttribute('transform', `translate(${box.x + jx},${box.y + jy}) scale(${bx.s})`);
+
+  // logs wobble
+  $('logs').setAttribute('transform', `rotate(${logs.r})`);
+
+  // campfire flame (layered ribbons)
+  if (fireS.s > 0.001) {
+    const s = fireS.s;
+    bigP[0].setAttribute('d', flameD(150*s, 96*s, t*F, 0, 14*F*s));
+    bigP[1].setAttribute('d', flameD(112*s, 66*s, t*1.2*F, 1.7, 10*F*s));
+    bigP[2].setAttribute('d', flameD(70*s, 36*s, t*1.45*F, 3.1, 6*F*s));
+    if (!reduce && Math.random() < 0.18 * s && embers.length < 18)
+      embers.push({ x:(Math.random()-.5)*40, y:-30, vy:-(0.8+Math.random()*1.1), ph:Math.random()*6, life:1, n: el('circle', {class:'ember'}, $('embers')) });
+  } else bigP.forEach(p => p.setAttribute('d', ''));
+  $('halo').setAttribute('opacity', fireS.h * (0.85 + 0.15*F*Math.sin(t*7)));
+
+  for (let i = embers.length - 1; i >= 0; i--) {
+    const e = embers[i]; e.y += e.vy; e.life -= 0.012;
+    e.n.setAttribute('cx', e.x + Math.sin(t*3 + e.ph + e.y*0.04) * 10); e.n.setAttribute('cy', e.y);
+    e.n.setAttribute('r', 2.6 * e.life); e.n.setAttribute('opacity', e.life);
+    if (e.life <= 0) { e.n.remove(); embers.splice(i, 1); }
+  }
+  for (let i = sparks.length - 1; i >= 0; i--) {
+    const s = sparks[i]; s.x += s.vx; s.y += s.vy; s.vy += 0.16; s.vx *= 0.97; s.life -= 0.035;
+    s.n.setAttribute('cx', s.x); s.n.setAttribute('cy', s.y); s.n.setAttribute('r', s.r * s.life);
+    if (s.life <= 0) { s.n.remove(); sparks.splice(i, 1); }
+  }
+
+  // rocks
+  rocks.forEach(r => r.b.setAttribute('transform', `translate(${r.x},${r.y - r.lift}) scale(${r.sx},${r.sy})`));
+  dots.forEach(d => { const cx = d.c.getAttribute('cx'); d.c.setAttribute('transform', `translate(${cx},0) scale(${d.s}) translate(${-cx},0)`); });
+
+  // signifiers
+  $('sigMatch').classList.toggle('on', !m.held && !m.moving && !done && !m.gone);
+  $('sigStrike').classList.toggle('on', m.held && !m.lit && !done);
+  $('sigFire').classList.toggle('on', m.lit && !done);
+
+  requestAnimationFrame(frame);
+}
+
+layout();
+dots.forEach((d, i) => d.c.classList.toggle('on', i < 3));
+new ResizeObserver(layout).observe(wrap);
+entrance();
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>
